@@ -792,8 +792,13 @@ class ControlNetModel(ModelMixin, ConfigMixin, FromOriginalControlnetMixin):
 
         controlnet_cond = self.controlnet_cond_embedding(controlnet_cond)
 
-        padding = sample.size(3) - controlnet_cond.size(3)
-        controlnet_cond = F.pad(controlnet_cond, (0, padding))
+        # Ensure controlnet_cond matches the size of sample at dimensions 2 and 3
+        if sample.size(2) != controlnet_cond.size(2) or sample.size(3) != controlnet_cond.size(3):
+            padding_height = sample.size(2) - controlnet_cond.size(2)
+            padding_width = sample.size(3) - controlnet_cond.size(3)
+
+            # Pad controlnet_cond to match the size of sample
+            controlnet_cond = F.pad(controlnet_cond, (0, padding_width, 0, padding_height))
 
         sample = sample + controlnet_cond
 
