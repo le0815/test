@@ -94,23 +94,7 @@ class ImageConverter:
               controlnet_conditioning_scale,
               control_guidance_end, negative_prompt)
 
-        # 2. Forward embeddings and negative embeddings through text encoder
-        max_length = self.pipeline.tokenizer.model_max_length
-
-        input_ids = self.pipeline.tokenizer(prompt, truncation=False, padding="max_length", max_length=input_ids.shape[-1],
-                                      return_tensors="pt").input_ids
-        input_ids = input_ids.to("cuda")
-
-        # negative_ids = self.pipeline.tokenizer("", truncation=False, padding="max_length", max_length=input_ids.shape[-1],
-        #                               return_tensors="pt").input_ids
-        # negative_ids = negative_ids.to("cuda")
-
-        concat_embeds = []
-        neg_embeds = []
-        for i in range(0, input_ids.shape[-1], max_length):
-            concat_embeds.append(self.pipeline.text_encoder(input_ids[:, i: i + max_length])[0])
-
-        prompt_embeds = torch.cat(concat_embeds, dim=1)
+        prompt_embeds, negative_prompt_embeds = self.get_pipeline_embeds(prompt, negative_prompt, "cuda")
 
         images = self.pipeline(
             prompt_embeds=prompt_embeds,
@@ -118,10 +102,45 @@ class ImageConverter:
             strength=strength,
             control_image=control_images,
             guidance_scale=guidance_scale,
-            negative_prompt=negative_prompt,
+            negative_prompt_embeds=negative_prompt_embeds,
             generator=self.generator,
             num_inference_steps=num_inference_steps,
             controlnet_conditioning_scale=controlnet_conditioning_scale,
             control_guidance_end=control_guidance_end,
         ).images
         return images[0]
+
+    def get_pipeline_embeds(self, prompt, negative_prompt, device):
+        """ Get pipeline embeds for prompts bigger than the maxlength of the pipe
+        :param pipeline:
+        :param prompt:
+        :param negative_prompt:
+        :param device:
+        :return:
+        """
+        max_length = self.pipeline.tokenizer.model_max_length
+
+        # simple way to determine length of tokens
+        count_prompt = len(prompt.split(" "))
+        count_negative_prompt = len(negative_prompt.split(" "))
+
+        # create the tensor based on which prompt is longer
+        if count_prompt >= count_negative_prompt:
+            input_ids = self.pipeline.tokenizer(prompt, return_tensors="pt", truncation=False).input_ids.to(device)
+            shape_max_length = input_ids.shape[-1]
+            negative_ids = self.pipeline.tokenizer(negative_prompt, truncation=False, padding="max_length",
+                                              max_length=shape_max_length, return_tensors="pt").input_ids.to(device)
+
+        else:
+            negative_ids = self.pipeline.tokenizer(negative_prompt, return_tensors="pt", truncation=False).input_ids.to(device)
+            shape_max_length = negative_ids.shape[-1]
+            input_ids = self.pipeline.tokenizer(prompt, return_tensors="pt", truncation=False, padding="max_length",
+                                           max_length=shape_max_length).input_ids.to(device)
+
+        concat_embeds = []
+        neg_embeds = []
+        for i in range(0, shape_max_length, max_length):
+            concat_embeds.append(self.pipeline.text_encoder(input_ids[:, i: i + max_length])[0])
+            neg_embeds.append(self.pipeline.text_encoder(negative_ids[:, i: i + max_length])[0])
+
+        return torch.cat(concat_embeds, dim=1), torch.cat(neg_embeds, dim=1)
