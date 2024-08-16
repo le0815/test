@@ -100,7 +100,7 @@ class ImageConverter:
         input_ids = self.pipeline.tokenizer(prompt, return_tensors="pt").input_ids
         input_ids = input_ids.to("cuda")
 
-        negative_ids = self.pipeline.tokenizer(negative_prompt, truncation=False, padding="max_length", max_length=input_ids.shape[-1],
+        negative_ids = self.pipeline.tokenizer("", truncation=False, padding="max_length", max_length=input_ids.shape[-1],
                                       return_tensors="pt").input_ids
         negative_ids = negative_ids.to("cuda")
 
