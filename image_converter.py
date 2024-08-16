@@ -114,12 +114,12 @@ class ImageConverter:
         negative_prompt_embeds = torch.cat(neg_embeds, dim=1)
 
         images = self.pipeline(
-            prompt_embeds,
+            prompt_embeds=prompt_embeds,
             image=image,
             strength=strength,
             control_image=control_images,
             guidance_scale=guidance_scale,
-            negative_prompt=negative_prompt_embeds,
+            negative_prompt_embeds=negative_prompt_embeds,
             generator=self.generator,
             num_inference_steps=num_inference_steps,
             controlnet_conditioning_scale=controlnet_conditioning_scale,
