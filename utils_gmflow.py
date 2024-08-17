@@ -31,6 +31,19 @@ def split_feature(feature,
                                ).permute(0, 1, 3, 2, 4, 5).reshape(b_new, h_new, w_new, c)  # [B*K*K, H/K, W/K, C]
     else:  # [B, C, H, W]
         b, c, h, w = feature.size()
+
+        # Ensure h and w are divisible by num_splits
+        if h % num_splits != 0 or w % num_splits != 0:
+            # Calculate the padding needed to make h and w divisible by num_splits
+            pad_h = (num_splits - h % num_splits) % num_splits
+            pad_w = (num_splits - w % num_splits) % num_splits
+
+            # Pad the tensor
+            feature = F.pad(feature, (0, pad_w, 0, pad_h))
+
+            # Update the dimensions
+            h, w = h + pad_h, w + pad_w
+
         assert h % num_splits == 0 and w % num_splits == 0
 
         b_new = b * num_splits * num_splits
