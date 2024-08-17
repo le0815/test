@@ -93,7 +93,10 @@ class TemporalGuide(BaseGuide):
             warped_img = self.stylized_imgs[0]
         else:
             prev_img = cv2.imread(self.stylized_imgs[i - 1])
-            prev_img = cv2.resize(prev_img, (414, 720))
+            try:
+                prev_img = cv2.resize(prev_img, (414, 720))
+            except:
+                pass
             warped_img = flow_calc.warp(prev_img, self.flows[i - 1],
                                         'nearest').astype(np.uint8)
 
