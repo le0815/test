@@ -95,16 +95,15 @@ class TemporalGuide(BaseGuide):
             prev_img = cv2.imread(self.stylized_imgs[i - 1])
             try:
                 prev_img = cv2.resize(prev_img, (414, 720))
+                warped_img = flow_calc.warp(prev_img, self.flows[i - 1],
+                                            'nearest').astype(np.uint8)
+
+                warped_img = cv2.inpaint(warped_img, self.masks[i - 1], 30,
+                                         cv2.INPAINT_TELEA)
+
+                cv2.imwrite(self.imgs[i], warped_img)
+
+                return super().get_cmd(i, weight)
             except:
-                pass
-            warped_img = flow_calc.warp(prev_img, self.flows[i - 1],
-                                        'nearest').astype(np.uint8)
-
-
-
-            warped_img = cv2.inpaint(warped_img, self.masks[i - 1], 30,
-                                     cv2.INPAINT_TELEA)
-
-            cv2.imwrite(self.imgs[i], warped_img)
-
-        return super().get_cmd(i, weight)
+                print('adsf')
+            
