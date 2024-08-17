@@ -105,5 +105,5 @@ class TemporalGuide(BaseGuide):
 
                 return super().get_cmd(i, weight)
             except:
-                print('adsf')
-            
+                return ""
+
