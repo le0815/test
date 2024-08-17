@@ -102,8 +102,9 @@ class TemporalGuide(BaseGuide):
                 warped_img = cv2.inpaint(warped_img, self.masks[i - 1], 30,
                                          cv2.INPAINT_TELEA)
 
-            except:
+            except Exception as err:
                 print(f"cannot resize: {self.stylized_imgs[i - 1]}")
+                print(err)
                 return ""
 
         cv2.imwrite(self.imgs[i], warped_img)
