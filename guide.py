@@ -93,20 +93,12 @@ class TemporalGuide(BaseGuide):
             warped_img = self.stylized_imgs[0]
         else:
             prev_img = cv2.imread(self.stylized_imgs[i - 1])
-            print(self.stylized_imgs[i - 1])
-            try:
-                prev_img = cv2.resize(prev_img, (414, 720))
-                warped_img = flow_calc.warp(prev_img, self.flows[i - 1],
-                                            'nearest').astype(np.uint8)
+            warped_img = flow_calc.warp(prev_img, self.flows[i - 1],
+                                        'nearest').astype(np.uint8)
 
-                warped_img = cv2.inpaint(warped_img, self.masks[i - 1], 30,
-                                         cv2.INPAINT_TELEA)
+            warped_img = cv2.inpaint(warped_img, self.masks[i - 1], 30,
+                                     cv2.INPAINT_TELEA)
 
-            except Exception as err:
-                print(f"cannot resize: {self.stylized_imgs[i - 1]}")
-                print(err)
-                return ""
-
-        cv2.imwrite(self.imgs[i], warped_img)
+            cv2.imwrite(self.imgs[i], warped_img)
 
         return super().get_cmd(i, weight)
