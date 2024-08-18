@@ -97,7 +97,7 @@ def process_one_sequence(i, video_sequence: VideoSequence):
 
                 cmd += (f' -output {os.path.abspath(output_seq[j])}'
                         ' -searchvoteiters 12 -patchmatchiters 6')
-                if OPEN_EBSYNTH_LOG:
+                if not OPEN_EBSYNTH_LOG:
                     print(cmd)
                 subprocess.run(cmd,
                                shell=True,
