@@ -19,7 +19,7 @@ from blender.video_sequence import VideoSequence
 from flow.flow_utils import flow_calc
 from src.video_util import frame_to_video
 
-OPEN_EBSYNTH_LOG = False
+OPEN_EBSYNTH_LOG = True
 MAX_PROCESS = 8
 
 os_str = platform.system()
@@ -85,6 +85,7 @@ def process_one_sequence(i, video_sequence: VideoSequence):
                             video_sequence.get_pos_sequence(i, is_forward))
         ]
         weights = [6, 0.5, 0.5, 2]
+        print(f'output_seq: {output_seq}')
         for j in range(interval):
             # key frame
             if j == 0:
@@ -97,11 +98,11 @@ def process_one_sequence(i, video_sequence: VideoSequence):
 
                 cmd += (f' -output {os.path.abspath(output_seq[j])}'
                         ' -searchvoteiters 12 -patchmatchiters 6')
-                if not OPEN_EBSYNTH_LOG:
-                    print(cmd)
+                if OPEN_EBSYNTH_LOG:
+                    print(f'cmd: {cmd}')
                 subprocess.run(cmd,
                                shell=True,
-                               capture_output=not OPEN_EBSYNTH_LOG)
+                               capture_output=OPEN_EBSYNTH_LOG)
 
 
 def process_sequences(i_arr, video_sequence: VideoSequence):
